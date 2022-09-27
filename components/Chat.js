@@ -2,7 +2,9 @@ import React from 'react';
 import { useCallback } from 'react';
 import { StyleSheet, View, Text, Button, TouchableHighlightBase, Platform, KeyboardAvoidingView } from 'react-native';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
-
+import { color } from 'react-native-reanimated';
+const firebase = require('firebase');
+require('firebase/firestore');
 
 
 export default class Chat extends React.Component {
@@ -76,11 +78,16 @@ export default class Chat extends React.Component {
           messages={this.state.messages}
           onSend={messages => this.onSend(messages)}
           renderBubble={this.renderBubble.bind(this)}
+          listViewProps={{
+            style: {
+              backgroundColor: color,
+            },
+          }}
           user={{
             _id: 1,
           }} />
         {Platform.OS === 'android' ? <KeyboardAvoidingView behavior='height' /> : null}
-      </View>
+      </View >
     )
   }
 }
