@@ -9,10 +9,12 @@ require('firebase/firestore');
 
 export default class Chat extends React.Component {
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
+      name: this.props.route.params.name,
       messages: [],
+      uid: '',
     }
     if (!firebase.apps.length) {
       firebase.initializeApp({
@@ -30,31 +32,56 @@ export default class Chat extends React.Component {
 
   componentDidMount() {
     // extract prop name and set title to name
-    let name = this.props.route.params.name;
+    let name = this.state.name;
     this.props.navigation.setOptions({ title: name });
 
-    // static message
+    // get data from the collection
+    this.referenceChatMessages = firebase.firestore().collection('messages');
+    // auth user
+    this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) {
+        await firebase.auth().signInAnonymously();
+      }
+      // update user state with currently active user data
+      this.setState({
+        uid: user.uid,
+        messages: [],
+      });
+      this.unsubscribe = this.referenceChatMessages
+        .orderBy("createdAt", "desc")
+        .onSnapshot(this.onCollectionUpdate);
+    });
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
+  }
+
+  onCollectionUpdate = (querySnapshot) => {
+    const messages = [];
+    // go thru each doc in collection
+    querySnapshot.forEach((doc) => {
+      let data = doc.data();
+      messages.push({
+        _id: data._id,
+        createdAt: data.createdAt,
+        text: data.text,
+        user: data.user
+      });
+    });
     this.setState({
-      messages: [
-        {
-          _id: 1,
-          text: name + ' Has entered the chat',
-          createdAt: new Date(),
-          system: true,
-          // Any additional custom parameters are passed through
-        },
-        {
-          _id: 2,
-          text: 'Hello developer',
-          createdAt: new Date(),
-          user: {
-            _id: 2,
-            name: 'React Native',
-            avatar: 'https://placeimg.com/140/140/any'
-          },
-        },
-      ],
-    })
+      messages
+    });
+  }
+
+  // save user messages
+  addList(message) {
+    this.referenceChatMessages.add({
+      _id: this.state.messages.length(),
+      createdAt: new Date(),
+      text: message,
+      user: data.user
+    });
   }
 
   onSend(messages = []) {
