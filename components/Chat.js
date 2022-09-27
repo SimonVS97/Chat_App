@@ -55,6 +55,7 @@ export default class Chat extends React.Component {
 
   componentWillUnmount() {
     this.unsubscribe();
+    this.authUnsubscribe();
   }
 
   onCollectionUpdate = (querySnapshot) => {
@@ -77,10 +78,7 @@ export default class Chat extends React.Component {
   // save user messages
   addList(message) {
     this.referenceChatMessages.add({
-      _id: this.state.messages.length(),
-      createdAt: new Date(),
-      text: message,
-      user: data.user
+      message
     });
   }
 
@@ -90,7 +88,8 @@ export default class Chat extends React.Component {
       // we pass messages into the onSend function and append messages to the previousState to build the new state
       previousState => ({
         messages: GiftedChat.append(previousState.messages, messages),
-      }))
+      }));
+    this.addList(messages);
   }
 
   renderBubble(props) {
@@ -123,7 +122,8 @@ export default class Chat extends React.Component {
             },
           }}
           user={{
-            _id: 1,
+            _id: this.state.uid,
+            avatar: "https://placeimg.com/140/140/people",
           }} />
         {Platform.OS === 'android' ? <KeyboardAvoidingView behavior='height' /> : null}
       </View >
