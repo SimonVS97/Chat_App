@@ -37,6 +37,8 @@ export default class Chat extends React.Component {
 
     // get data from the collection
     this.referenceChatMessages = firebase.firestore().collection('messages');
+
+
     // auth user
     this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
       if (!user) {
@@ -47,9 +49,7 @@ export default class Chat extends React.Component {
         uid: user.uid,
         messages: [],
       });
-      this.unsubscribe = this.referenceChatMessages
-        .orderBy("createdAt", "desc")
-        .onSnapshot(this.onCollectionUpdate);
+      this.unsubscribe = this.referenceChatMessages.orderBy('createdAt', 'desc').onSnapshot(this.onCollectionUpdate);
     });
   }
 
@@ -65,7 +65,7 @@ export default class Chat extends React.Component {
       let data = doc.data();
       messages.push({
         _id: data._id,
-        createdAt: data.createdAt,
+        createdAt: data.createdAt.toDate(),
         text: data.text,
         user: data.user
       });
@@ -78,7 +78,13 @@ export default class Chat extends React.Component {
   // save user messages
   addList(message) {
     this.referenceChatMessages.add({
-      message
+      uid: this.state.uid,
+      _id: message[0]._id,
+      text: message[0].text || '',
+      createdAt: message[0].createdAt,
+      user: {
+        _id: message[0].user._id,
+      }
     });
   }
 
