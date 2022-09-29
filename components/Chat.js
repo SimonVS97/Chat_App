@@ -72,6 +72,14 @@ export default class Chat extends React.Component {
     let name = this.state.name;
     this.props.navigation.setOptions({ title: name });
 
+    NetInfo.fetch().then(connection => {
+      if (connection.isConnected) {
+        console.log('online');
+      } else {
+        console.log('offline');
+      }
+    });
+
     // get data from the collection
     this.referenceChatMessages = firebase.firestore().collection('messages');
 
