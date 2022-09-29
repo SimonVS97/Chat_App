@@ -3,6 +3,10 @@ import { useCallback } from 'react';
 import { StyleSheet, View, Text, Button, TouchableHighlightBase, Platform, KeyboardAvoidingView } from 'react-native';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
 import { color } from 'react-native-reanimated';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from '@react-native-community/netinfo';
+
+
 const firebase = require('firebase');
 require('firebase/firestore');
 
@@ -30,6 +34,39 @@ export default class Chat extends React.Component {
     }
   }
 
+  // get messages from async storage
+  async getMessages() {
+    let messages = '';
+    try {
+      messages = await AsyncStorage.getItem('messages') || [];
+      this.setState({
+        messages: JSON.parse(messages)
+      })
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  // stringify the state of messages and put it into asyncstorage
+  async saveMessages() {
+    try {
+      await AsyncStorage.setItem('messages', JSON.stringify(this.state.messages));
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+  // method to remove messages if needed
+  async deleteMessages() {
+    try {
+      await AsyncStorage.removeItem('messages');
+      this.setState({
+        messages: []
+      })
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
   componentDidMount() {
     // extract prop name and set title to name
     let name = this.state.name;
@@ -51,6 +88,8 @@ export default class Chat extends React.Component {
       });
       this.unsubscribe = this.referenceChatMessages.orderBy('createdAt', 'desc').onSnapshot(this.onCollectionUpdate);
     });
+    // set state messages to messages in async storage
+    this.getMessages();
   }
 
   componentWillUnmount() {
@@ -67,7 +106,10 @@ export default class Chat extends React.Component {
         _id: data._id,
         createdAt: data.createdAt.toDate(),
         text: data.text,
-        user: data.user
+        uid: data.uid,
+        user: {
+          _id: data.user._id
+        }
       });
     });
     this.setState({
@@ -91,10 +133,13 @@ export default class Chat extends React.Component {
   onSend(messages = []) {
     this.setState(
       // previousState is the state of the state before the change is applied
-      // we pass messages into the onSend function and append messages to the previousState to build the new state
+      // we pass messages into the onSend function and append messages to the previousState to build the new state of messages
       previousState => ({
         messages: GiftedChat.append(previousState.messages, messages),
-      }));
+      }),
+      () => {
+        this.saveMessages();
+      });
     this.addList(messages);
   }
 
