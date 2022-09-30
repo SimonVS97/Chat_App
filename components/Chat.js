@@ -75,29 +75,34 @@ export default class Chat extends React.Component {
     NetInfo.fetch().then(connection => {
       if (connection.isConnected) {
         console.log('online');
+        // online
+        // auth user
+        this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+          if (!user) {
+            await firebase.auth().signInAnonymously();
+          }
+          // update user state with currently active user data
+          this.setState({
+            uid: user.uid,
+            messages: [],
+          });
+        })
+        // get data from the collection
+        this.referenceChatMessages = firebase.firestore().collection('messages');
+
+
+        this.unsubscribe = this.referenceChatMessages.orderBy('createdAt', 'desc').onSnapshot(this.onCollectionUpdate);
+
       } else {
         console.log('offline');
+        // offline
+        // set state messages to messages in async storage
+        this.getMessages();
       }
     });
 
-    // get data from the collection
-    this.referenceChatMessages = firebase.firestore().collection('messages');
 
 
-    // auth user
-    this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
-      if (!user) {
-        await firebase.auth().signInAnonymously();
-      }
-      // update user state with currently active user data
-      this.setState({
-        uid: user.uid,
-        messages: [],
-      });
-      this.unsubscribe = this.referenceChatMessages.orderBy('createdAt', 'desc').onSnapshot(this.onCollectionUpdate);
-    });
-    // set state messages to messages in async storage
-    this.getMessages();
   }
 
   componentWillUnmount() {
