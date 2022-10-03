@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from '@react-native-community/netinfo';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
-
+import CustomActions from './CustomActions';
 
 const firebase = require('firebase');
 require('firebase/firestore');
@@ -55,6 +55,25 @@ export default class Chat extends React.Component {
       }
     }
   }
+
+  // take a photo with the device
+  takePhoto = async () => {
+    let { status } = await Permissions.askAsync(
+      Permissions.CAMERA,
+      Permissions.CAMERA_ROLL,
+    );
+    if (status === 'granted') {
+      let result = await ImagePicker.launchCameraAsync({
+        mediaTypes: 'Images',
+      }).catch(error => console.log(error));
+      if (!result.cancelled) {
+        this.setState({
+          image: result
+        })
+      }
+    }
+  }
+
 
   // get messages from async storage
   async getMessages() {
@@ -207,6 +226,10 @@ export default class Chat extends React.Component {
     }
   }
 
+  renderCustomActions = (props) => {
+    return <CustomActions {...props} />
+  }
+
   render() {
 
     // extract prop color into color variable
@@ -231,6 +254,7 @@ export default class Chat extends React.Component {
           onSend={messages => this.onSend(messages)}
           renderBubble={this.renderBubble.bind(this)}
           renderInputToolbar={this.renderInputToolbar.bind(this)}
+          renderActions={this.renderCustomActions}
           listViewProps={{
             style: {
               backgroundColor: color,
