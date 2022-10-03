@@ -1,10 +1,12 @@
 import React from 'react';
 import { useCallback } from 'react';
-import { StyleSheet, View, Text, Button, TouchableHighlightBase, Platform, KeyboardAvoidingView } from 'react-native';
-import { GiftedChat, Bubble } from 'react-native-gifted-chat';
+import { StyleSheet, View, Text, Button, TouchableHighlightBase, Platform, KeyboardAvoidingView, Image } from 'react-native';
+import { GiftedChat, Bubble, InputToolbar } from 'react-native-gifted-chat';
 import { color } from 'react-native-reanimated';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from '@react-native-community/netinfo';
+import * as Permissions from 'expo-permissions';
+import * as ImagePicker from 'expo-image-picker';
 
 
 const firebase = require('firebase');
@@ -19,6 +21,8 @@ export default class Chat extends React.Component {
       name: this.props.route.params.name,
       messages: [],
       uid: '',
+      isConnected: true,
+      image: null,
     }
     if (!firebase.apps.length) {
       firebase.initializeApp({
@@ -31,6 +35,24 @@ export default class Chat extends React.Component {
         appId: "1:686097625275:web:7975b7132b405288b8b99e",
         measurementId: "G-W00FVGPRYS"
       });
+    }
+  }
+
+  // pick a photo from the device's gallery
+  pickImage = async () => {
+    // asking permission
+    const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+
+    if (status === 'granted') {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'Images',
+      }).catch(error => console.log(error));
+
+      if (!result.cancelled) {
+        this.setState({
+          image: result
+        })
+      }
     }
   }
 
@@ -75,6 +97,9 @@ export default class Chat extends React.Component {
     NetInfo.fetch().then(connection => {
       if (connection.isConnected) {
         console.log('online');
+        this.setState({
+          isConnected: true,
+        })
         // online
         // auth user
         this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
@@ -89,8 +114,6 @@ export default class Chat extends React.Component {
         })
         // get data from the collection
         this.referenceChatMessages = firebase.firestore().collection('messages');
-
-
         this.unsubscribe = this.referenceChatMessages.orderBy('createdAt', 'desc').onSnapshot(this.onCollectionUpdate);
 
       } else {
@@ -98,6 +121,9 @@ export default class Chat extends React.Component {
         // offline
         // set state messages to messages in async storage
         this.getMessages();
+        this.setState({
+          isConnected: false,
+        })
       }
     });
 
@@ -128,6 +154,7 @@ export default class Chat extends React.Component {
     this.setState({
       messages
     });
+    this.saveMessages()
   }
 
   // save user messages
@@ -169,17 +196,41 @@ export default class Chat extends React.Component {
     )
   }
 
+  renderInputToolbar(props) {
+    if (this.state.isConnected == false) {
+    } else {
+      return (
+        <InputToolbar
+          {...props}
+        />
+      );
+    }
+  }
+
   render() {
 
     // extract prop color into color variable
     const color = this.props.route.params.color;
     return (
       <View style={styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center' }}>
+          <Button
+            title='Pick an image from the library'
+            onPress={this.pickImage}
+          />
+          <Button
+            title='Take a photo'
+            onPress={this.takePhoto}
+          />
+        </View>
+        {this.state.image &&
+          <Image source={{ uri: this.state.image.uri }} style={{ width: 200, height: 200 }} />}
         <GiftedChat
           // feed messages into Gifted chat component
           messages={this.state.messages}
           onSend={messages => this.onSend(messages)}
           renderBubble={this.renderBubble.bind(this)}
+          renderInputToolbar={this.renderInputToolbar.bind(this)}
           listViewProps={{
             style: {
               backgroundColor: color,
