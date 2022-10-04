@@ -40,23 +40,7 @@ export default class Chat extends React.Component {
     }
   }
 
-  // pick a photo from the device's gallery
-  pickImage = async () => {
-    // asking permission
-    const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
 
-    if (status === 'granted') {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: 'Images',
-      }).catch(error => console.log(error));
-
-      if (!result.cancelled) {
-        this.setState({
-          image: result
-        })
-      }
-    }
-  }
 
   // take a photo with the device
   takePhoto = async () => {

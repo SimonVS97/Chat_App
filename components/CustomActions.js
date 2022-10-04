@@ -5,7 +5,7 @@ import { connectActionSheet } from '@expo/react-native-action-sheet';
 import * as Permissions from 'expo-permissions';
 import * as Location from 'expo-location';
 import firebase from 'firebase';
-
+import * as ImagePicker from 'expo-image-picker';
 
 
 export class CustomAction extends React.Component {
@@ -20,7 +20,6 @@ export class CustomAction extends React.Component {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status === 'granted') {
       let result = await Location.getCurrentPositionAsync({});
-      console.log(result);
 
       if (result) {
         this.props.onSend({
@@ -30,6 +29,27 @@ export class CustomAction extends React.Component {
           }
         })
       }
+    }
+  }
+
+  // pick a photo from the device's gallery
+  pickImage = async () => {
+    // expo permission
+    const { status } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+    try {
+      if (status === "granted") {
+        // pick image
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images, // only images are allowed
+        }).catch((error) => console.log(error));
+        // canceled process
+        if (!result.cancelled) {
+          const imageUrl = await this.uploadImageFetch(result.uri);
+          this.props.onSend({ image: imageUrl });
+        }
+      }
+    } catch (error) {
+      console.log(error.message);
     }
   }
 
@@ -92,7 +112,7 @@ export class CustomAction extends React.Component {
         switch (buttonIndex) {
           case 0:
             console.log("user wants to pick an image");
-            return this.imagePicker();
+            return this.pickImage();
           case 1:
             console.log("user wants to take a photo");
             return this.takePhoto();
