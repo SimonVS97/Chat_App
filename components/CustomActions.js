@@ -4,14 +4,16 @@ import PropTypes from 'prop-types';
 import { connectActionSheet } from '@expo/react-native-action-sheet';
 import * as Permissions from 'expo-permissions';
 import * as Location from 'expo-location';
+import firebase from 'firebase';
 
 
 
 export class CustomAction extends React.Component {
   constructor(props) {
     super(props);
-
   }
+
+
 
   // get location
   getLocation = async () => {
@@ -29,6 +31,48 @@ export class CustomAction extends React.Component {
         })
       }
     }
+  }
+
+  // store images in firebase storage
+  uploadImageFetch = async (uri) => {
+    // get blob data from the image
+    // async function, we wait for the promise to settle
+    const blob = await new Promise((resolve, reject) => {
+      // initializes an XMLHttpRequest
+      // you can retrieve data from a URL or URI
+      const xhr = new XMLHttpRequest();
+      // onload function is fired, when the data is successfully retrieved
+      xhr.onload = function () {
+        // returns data of the retrieval
+        resolve(xhr.response);
+      };
+      // onerror function is fired, when the data could not be retrieved
+      xhr.onerror = function (e) {
+        // logs error
+        console.log(e);
+        reject(new TypeError('Network request failed'));
+      };
+      // specifies the type of the respone
+      xhr.responseType = 'blob';
+      // initializes the request, here get the passed uri
+      // http method, string of the uri, true to perform the operation asynchronously
+      xhr.open('GET', uri, true);
+      // sending the request, get method needs no body
+      xhr.send(null);
+    });
+    const imageNameBefore = uri.split("/");
+    const imageName = imageNameBefore[imageNameBefore.length - 1];
+
+    // create reference for the image file
+    const ref = firebase.storage().ref().child(`images/${imageName}`);
+    // put the data to the reference in firestore
+    // async so await is needed
+    const snapshot = await ref.put(blob);
+    // I guess close the connection to firestore
+    blob.close();
+
+    // return the url of the image now stored in firebase
+    return await snapshot.ref.getDownloadURL();
   }
 
   onActionPress = () => {
