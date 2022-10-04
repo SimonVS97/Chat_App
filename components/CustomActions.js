@@ -13,8 +13,6 @@ export class CustomAction extends React.Component {
     super(props);
   }
 
-
-
   // get location
   getLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -51,6 +49,31 @@ export class CustomAction extends React.Component {
     } catch (error) {
       console.log(error.message);
     }
+  }
+
+  // take a photo with the device
+  takePhoto = async () => {
+    // expo permission
+    let { status } = await Permissions.askAsync(
+      Permissions.CAMERA,
+      Permissions.CAMERA_ROLL,
+    );
+    // 
+    try {
+      if (status === 'granted') {
+        let result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images, // only images are allowed
+        }).catch(error => console.log(error));
+        if (!result.cancelled) {
+          const imageUrl = await this.uploadImageFetch(result.uri);
+          this.props.onSend({ image: imageUrl });
+        }
+      }
+    }
+    catch (error) {
+      console.log(error.message);
+    }
+
   }
 
   // store images in firebase storage
@@ -127,9 +150,14 @@ export class CustomAction extends React.Component {
 
   render() {
     return (
-      <TouchableOpacity style={[styles.container]} onPress={this.onActionPress}>
+      <TouchableOpacity
+        accessible={true}
+        accessibilityLabel="More options"
+        accessibilityHint="Let’s you choose to send an image or your geolocation."
+        style={[styles.container]}
+        onPress={this.onActionPress}>
         <View style={[styles.wrapper, this.props.wrapperStyle]}>
-          <Text style={[styles.icon, this.props.iconTextStyle]}>+</Text>
+          <Text style={[styles.iconText, this.props.iconTextStyle]}>+</Text>
         </View>
       </TouchableOpacity>
     )

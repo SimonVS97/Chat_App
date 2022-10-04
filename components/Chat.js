@@ -76,6 +76,7 @@ export default class Chat extends React.Component {
   // stringify the state of messages and put it into asyncstorage
   async saveMessages() {
     try {
+      console.log(this.state.messages[0])
       await AsyncStorage.setItem('messages', JSON.stringify(this.state.messages));
     } catch (error) {
       console.log(error.message);
@@ -150,7 +151,8 @@ export default class Chat extends React.Component {
         user: {
           _id: data.user._id
         },
-        location: data.location
+        image: data.image || null,
+        location: data.location || null,
       });
     });
     this.setState({
@@ -160,19 +162,18 @@ export default class Chat extends React.Component {
   }
 
   // save user messages
-  addList(message) {
+  addList() {
+    const message = this.state.messages[0];
     this.referenceChatMessages.add({
       uid: this.state.uid,
-      _id: message[0]._id,
-      text: message[0].text || '',
-      createdAt: message[0].createdAt,
+      _id: message._id,
+      text: message.text || '',
+      createdAt: message.createdAt,
       user: {
-        _id: message[0].user._id,
+        _id: message.user._id,
       },
-      location: {
-        latitude: message[0].location.latitude,
-        longitude: message[0].location.longitude
-      }
+      image: message.image || null,
+      location: message.location || null,
     });
   }
 
@@ -184,9 +185,9 @@ export default class Chat extends React.Component {
         messages: GiftedChat.append(previousState.messages, messages),
       }),
       () => {
+        this.addList();
         this.saveMessages();
       });
-    this.addList(messages);
   }
 
   renderBubble(props) {
