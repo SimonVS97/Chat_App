@@ -162,6 +162,7 @@ THis project uses the Google Firestone API.
 
 ## Screenshots
 
-<img src="https://user-images.githubusercontent.com/104713327/193913231-d28e0006-ae6d-42c3-958b-0a7f27574cf0.png"  width=50%)>
-![this is an image](https://user-images.githubusercontent.com/104713327/193913529-aec8723f-02fa-4e5a-ac8e-6728549edbed.png | width=100)
+<img src="https://user-images.githubusercontent.com/104713327/193913231-d28e0006-ae6d-42c3-958b-0a7f27574cf0.png" height=50% width=50%>
+<img src="https://user-images.githubusercontent.com/104713327/193913529-aec8723f-02fa-4e5a-ac8e-6728549edbed.png "height=50% width=50%>
+
 
