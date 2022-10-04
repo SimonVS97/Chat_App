@@ -58,8 +58,9 @@ Many of these dependencies are install as packages within larger libraries or fr
 Make sure you are withing the root folder of the project!
 
 Install React and React Native if you don't already have them:
+```
 npm install react react-dom react-native
-
+```
 Next install expo-cli if you don't already have it:
 npm install expo-cli --global
 
