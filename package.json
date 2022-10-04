@@ -31,7 +31,9 @@
     "react-native-screens": "~3.15.0",
     "react-native-web": "^0.18.9",
     "react-navigation": "^4.4.4",
-    "zlib": "^1.0.5"
+    "zlib": "^1.0.5",
+    "react-native-maps": "0.31.1",
+    "expo-location": "~14.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9"

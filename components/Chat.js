@@ -9,6 +9,8 @@ import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import CustomActions from './CustomActions';
 
+import MapView from 'react-native-maps';
+
 const firebase = require('firebase');
 require('firebase/firestore');
 
@@ -73,7 +75,6 @@ export default class Chat extends React.Component {
       }
     }
   }
-
 
   // get messages from async storage
   async getMessages() {
@@ -145,9 +146,6 @@ export default class Chat extends React.Component {
         })
       }
     });
-
-
-
   }
 
   componentWillUnmount() {
@@ -167,7 +165,8 @@ export default class Chat extends React.Component {
         uid: data.uid,
         user: {
           _id: data.user._id
-        }
+        },
+        location: data.location
       });
     });
     this.setState({
@@ -185,6 +184,10 @@ export default class Chat extends React.Component {
       createdAt: message[0].createdAt,
       user: {
         _id: message[0].user._id,
+      },
+      location: {
+        latitude: message[0].location.latitude,
+        longitude: message[0].location.longitude
       }
     });
   }
@@ -230,22 +233,30 @@ export default class Chat extends React.Component {
     return <CustomActions {...props} />
   }
 
+  renderCustomView = (props) => {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{ width: 150, height: 100, borderRadius: 13, margin: 3 }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        />
+      );
+    }
+    return null;
+  }
+
   render() {
 
     // extract prop color into color variable
     const color = this.props.route.params.color;
     return (
       <View style={styles.container}>
-        <View style={{ flex: 1, justifyContent: 'center' }}>
-          <Button
-            title='Pick an image from the library'
-            onPress={this.pickImage}
-          />
-          <Button
-            title='Take a photo'
-            onPress={this.takePhoto}
-          />
-        </View>
         {this.state.image &&
           <Image source={{ uri: this.state.image.uri }} style={{ width: 200, height: 200 }} />}
         <GiftedChat
@@ -255,6 +266,7 @@ export default class Chat extends React.Component {
           renderBubble={this.renderBubble.bind(this)}
           renderInputToolbar={this.renderInputToolbar.bind(this)}
           renderActions={this.renderCustomActions}
+          renderCustomView={this.renderCustomView}
           listViewProps={{
             style: {
               backgroundColor: color,

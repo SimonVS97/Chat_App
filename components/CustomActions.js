@@ -1,37 +1,65 @@
 import React from 'react';
 import { StyleSheet, View, Text, Button, TouchableHighlightBase, Platform, KeyboardAvoidingView, Image, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
+import { connectActionSheet } from '@expo/react-native-action-sheet';
+import * as Permissions from 'expo-permissions';
+import * as Location from 'expo-location';
 
 
-export default class CustomActions extends React.Component {
+
+export class CustomAction extends React.Component {
   constructor(props) {
     super(props);
 
   }
 
+  // get location
+  getLocation = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status === 'granted') {
+      let result = await Location.getCurrentPositionAsync({});
+      console.log(result);
+
+      if (result) {
+        this.props.onSend({
+          location: {
+            longitude: result.coords.longitude,
+            latitude: result.coords.latitude,
+          }
+        })
+      }
+    }
+  }
+
   onActionPress = () => {
-    const options = ['Choose From Library', 'Take Picture', 'Send Location', 'Cancel'];
+    const options = [
+      "Choose From Library",
+      "Take Picture",
+      "Send Location",
+      "Cancel",
+    ];
     const cancelButtonIndex = options.length - 1;
-    this.context.actionSheet().showActionSheetWithOption(
+    this.props.showActionSheetWithOptions(
       {
         options,
-        cancelButtonIndex
+        cancelButtonIndex,
       },
       async (buttonIndex) => {
         switch (buttonIndex) {
           case 0:
-            console.log('user wants to pick an image');
-            return;
+            console.log("user wants to pick an image");
+            return this.imagePicker();
           case 1:
-            console.log('user wants to take a photo');
-            return;
+            console.log("user wants to take a photo");
+            return this.takePhoto();
           case 2:
-            console.log('user wants to get their location');
-          default:
+            console.log("user wants to get their location");
+            return this.getLocation();
         }
       }
-    )
-  }
+    );
+  };
+
 
   render() {
     return (
@@ -67,6 +95,10 @@ const styles = StyleSheet.create({
   },
 })
 
-CustomActions.contextTypes = {
+CustomAction.contextTypes = {
   actionSheet: PropTypes.func,
 };
+
+const CustomActions = connectActionSheet(CustomAction);
+
+export default CustomActions;
