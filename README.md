@@ -62,18 +62,33 @@ Install React and React Native if you don't already have them:
 npm install react react-dom react-native
 ```
 Next install expo-cli if you don't already have it:
+```
 npm install expo-cli --global
+```
 
 Next:
+```
 npm install react-native-gifted-chat --save
-
+```
+```
 npm install --save firebase@7.9.0
-
+```
+```
 expo install @react-native-async-storage/async-storage
+```
+```
 expo install @react-native-community/netinfo
-expo install expo-image-picker 
+```
+```
+expo install expo-image-picker
+```
+```
 expo install expo-location 
+```
+```
 expo install react-native-maps
+```
+
 
 ### Running the app
 
